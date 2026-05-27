@@ -104,4 +104,8 @@ Then open the app again.
 
 ## Responsibility
 
+Payload Sender does not bundle or redistribute third-party payload binaries. Supported payloads are downloaded on demand from their upstream sources, and each payload remains subject to its own upstream license and terms.
+
+This project is not affiliated with any hardware vendor, platform owner, or upstream payload author.
+
 Use this tool only with hardware you own or are authorized to test. The maintainers of this project are not responsible for third-party payload behavior or for changes made by upstream payload repositories.
