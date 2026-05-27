@@ -65,13 +65,15 @@ swift test
 
 ## Downloadable DMG
 
-Project releases can include a ready-to-use macOS disk image:
+If you do not want to build from source, download the latest `PayloadSender.dmg` from the [Releases](https://github.com/duperin/payload-sender/releases) page, open it, and move `PayloadSender.app` to your Applications folder.
+
+To create the DMG locally from source:
 
 ```bash
 ./script/create_dmg.sh
 ```
 
-The generated file is:
+The generated local file is:
 
 ```text
 dist/PayloadSender.dmg
