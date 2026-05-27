@@ -1,0 +1,8 @@
+.build/
+dist/
+.DS_Store
+.codex/
+docs/superpowers/
+*.xcuserdata/
+DerivedData/
+Package.resolved
