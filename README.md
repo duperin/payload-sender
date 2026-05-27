@@ -42,7 +42,7 @@ Xcode command line tools or Xcode with Swift 5.9 support are only required if yo
 
 Download the latest `PayloadSender.dmg` from the [Releases](https://github.com/duperin/payload-sender/releases) page, open it, and move `PayloadSender.app` to your Applications folder.
 
-The downloadable app is ad-hoc signed, but it is not notarized. macOS may still show a Gatekeeper warning the first time it is opened. For broad public distribution, sign and notarize the app with an Apple Developer account.
+The downloadable app is ad-hoc signed, but it is not notarized. macOS may still show a Gatekeeper warning the first time it is opened.
 
 If macOS says the downloaded app is damaged, remove the quarantine attribute after moving the app to `/Applications`:
 
