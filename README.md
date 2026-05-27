@@ -33,11 +33,26 @@ The app downloads supported payloads on demand from their upstream release sourc
 ## Requirements
 
 - macOS 14 or newer.
-- Xcode command line tools or Xcode with Swift 5.9 support.
 - Network access to the upstream payload repositories.
 - A console listening for payloads on the selected TCP port.
 
-## Build and Run
+Xcode command line tools or Xcode with Swift 5.9 support are only required if you want to build from source.
+
+## Download
+
+Download the latest `PayloadSender.dmg` from the [Releases](https://github.com/duperin/payload-sender/releases) page, open it, and move `PayloadSender.app` to your Applications folder.
+
+The downloadable app is ad-hoc signed, but it is not notarized. macOS may still show a Gatekeeper warning the first time it is opened. For broad public distribution, sign and notarize the app with an Apple Developer account.
+
+If macOS says the downloaded app is damaged, remove the quarantine attribute after moving the app to `/Applications`:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PayloadSender.app
+```
+
+Then open the app again.
+
+## Build from Source
 
 Clone the repository and run:
 
@@ -63,10 +78,6 @@ To run tests:
 swift test
 ```
 
-## Downloadable DMG
-
-If you do not want to build from source, download the latest `PayloadSender.dmg` from the [Releases](https://github.com/duperin/payload-sender/releases) page, open it, and move `PayloadSender.app` to your Applications folder.
-
 To create the DMG locally from source:
 
 ```bash
@@ -78,16 +89,6 @@ The generated local file is:
 ```text
 dist/PayloadSender.dmg
 ```
-
-The downloadable app is ad-hoc signed, but it is not notarized. macOS may still show a Gatekeeper warning the first time it is opened. For broad public distribution, sign and notarize the app with an Apple Developer account.
-
-If macOS says the downloaded app is damaged, remove the quarantine attribute after moving the app to `/Applications`:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/PayloadSender.app
-```
-
-Then open the app again.
 
 ## Usage
 
