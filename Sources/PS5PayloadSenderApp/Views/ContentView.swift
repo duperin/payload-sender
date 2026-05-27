@@ -23,6 +23,7 @@ struct ContentView: View {
                 PayloadButtonGrid(
                     payloads: viewModel.payloads,
                     activePayloadID: viewModel.activePayloadID,
+                    versionStates: viewModel.versionStates,
                     customPortText: $viewModel.customPortText,
                     action: viewModel.send,
                     customAction: viewModel.chooseAndSendCustomPayload
@@ -30,6 +31,9 @@ struct ContentView: View {
                 StatusLogView(events: viewModel.events, clearAction: viewModel.clearLog)
             }
             .padding(24)
+        }
+        .task {
+            await viewModel.refreshPayloadVersions()
         }
     }
 

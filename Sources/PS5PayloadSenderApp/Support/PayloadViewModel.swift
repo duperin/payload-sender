@@ -2,6 +2,23 @@ import AppKit
 import Foundation
 import PS5PayloadKit
 
+enum PayloadVersionState: Equatable {
+    case loading
+    case available(String)
+    case unavailable
+
+    var label: String {
+        switch self {
+        case .loading:
+            return "Checking"
+        case .available(let version):
+            return version
+        case .unavailable:
+            return "Unavailable"
+        }
+    }
+}
+
 @MainActor
 final class PayloadViewModel: ObservableObject {
     @Published var targetIP: String {
@@ -13,6 +30,7 @@ final class PayloadViewModel: ObservableObject {
         PayloadEvent(kind: .info, message: "Enter the console IP address and choose a payload.")
     ]
     @Published private(set) var activePayloadID: String?
+    @Published private(set) var versionStates: [PayloadDefinition.ID: PayloadVersionState] = [:]
     @Published var customPortText: String {
         didSet {
             UserDefaults.standard.set(customPortText, forKey: Self.customPortKey)
@@ -21,6 +39,8 @@ final class PayloadViewModel: ObservableObject {
 
     let payloads = PayloadCatalog.all
     private let transferService = PayloadTransferService()
+    private let releaseClient = GitHubReleaseClient()
+    private var didRefreshVersions = false
     private static let targetIPKey = "targetIP"
     private static let customPortKey = "customPort"
 
@@ -28,6 +48,29 @@ final class PayloadViewModel: ObservableObject {
         self.targetIP = UserDefaults.standard.string(forKey: Self.targetIPKey) ?? ""
         let savedCustomPort = UserDefaults.standard.string(forKey: Self.customPortKey) ?? "9021"
         self.customPortText = Self.normalizedPortText(savedCustomPort)
+    }
+
+    func refreshPayloadVersions() async {
+        guard !didRefreshVersions else { return }
+        didRefreshVersions = true
+
+        for payload in payloads {
+            versionStates[payload.id] = .loading
+        }
+
+        await withTaskGroup(of: (PayloadDefinition.ID, PayloadVersionState).self) { group in
+            for payload in payloads {
+                let releaseClient = releaseClient
+                group.addTask {
+                    let state = await Self.versionState(for: payload, releaseClient: releaseClient)
+                    return (payload.id, state)
+                }
+            }
+
+            for await (payloadID, state) in group {
+                versionStates[payloadID] = state
+            }
+        }
     }
 
     func send(_ payload: PayloadDefinition) {
@@ -116,5 +159,24 @@ final class PayloadViewModel: ObservableObject {
             return 9021
         }
         return PortValidator.clamped(port)
+    }
+
+    private static func versionState(for payload: PayloadDefinition, releaseClient: GitHubReleaseClient) async -> PayloadVersionState {
+        do {
+            switch payload.source {
+            case .latestGitHubRelease(let owner, let repository):
+                let release = try await releaseClient.latestRelease(owner: owner, repository: repository)
+                return .available(release.versionLabel)
+
+            case .latestForgejoRelease(let baseURL, let owner, let repository):
+                let release = try await releaseClient.latestForgejoRelease(baseURL: baseURL, owner: owner, repository: repository)
+                return .available(release.versionLabel)
+
+            case .directFile:
+                return .available(payload.fixedVersionLabel ?? "Fixed")
+            }
+        } catch {
+            return .unavailable
+        }
     }
 }

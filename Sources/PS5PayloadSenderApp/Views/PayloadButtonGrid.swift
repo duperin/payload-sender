@@ -4,6 +4,7 @@ import SwiftUI
 struct PayloadButtonGrid: View {
     let payloads: [PayloadDefinition]
     let activePayloadID: String?
+    let versionStates: [PayloadDefinition.ID: PayloadVersionState]
     @Binding var customPortText: String
     let action: (PayloadDefinition) -> Void
     let customAction: () -> Void
@@ -23,9 +24,8 @@ struct PayloadButtonGrid: View {
                         action(payload)
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: iconName(for: payload))
-                                .font(.title3.weight(.semibold))
-                                .frame(width: 28)
+                            versionChip(for: payload)
+                                .frame(width: 64, alignment: .leading)
 
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(payload.name)
@@ -117,15 +117,46 @@ struct PayloadButtonGrid: View {
         }
     }
 
-    private func iconName(for payload: PayloadDefinition) -> String {
-        payload.port == 50000 ? "bolt.horizontal.circle.fill" : "terminal.fill"
-    }
-
     private func normalizedPortText(_ text: String) -> String {
         let digits = text.filter(\.isNumber)
         guard let port = Int(digits), !digits.isEmpty else {
             return "9021"
         }
         return "\(PortValidator.clamped(port))"
+    }
+
+    @ViewBuilder
+    private func versionChip(for payload: PayloadDefinition) -> some View {
+        if let state = versionStates[payload.id] {
+            HStack(spacing: 4) {
+                if state == .loading {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.55)
+                        .frame(width: 8, height: 8)
+                }
+
+                Text(state.label)
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
+            .foregroundStyle(state == .unavailable ? .secondary : Color.accentColor)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                (state == .unavailable ? Color.secondary.opacity(0.12) : Color.accentColor.opacity(0.14)),
+                in: Capsule()
+            )
+            .help(state == .unavailable ? "Version could not be checked" : "Latest available version")
+        } else {
+            Text("--")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.12), in: Capsule())
+                .help("Version pending")
+        }
     }
 }

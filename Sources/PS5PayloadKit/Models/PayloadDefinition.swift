@@ -13,14 +13,24 @@ public struct PayloadDefinition: Identifiable, Hashable, Sendable {
     public let source: Source
     public let detail: String
     public let preferredFileName: String?
+    public let fixedVersionLabel: String?
 
-    public init(id: String, name: String, port: Int, source: Source, detail: String, preferredFileName: String? = nil) {
+    public init(
+        id: String,
+        name: String,
+        port: Int,
+        source: Source,
+        detail: String,
+        preferredFileName: String? = nil,
+        fixedVersionLabel: String? = nil
+    ) {
         self.id = id
         self.name = name
         self.port = port
         self.source = source
         self.detail = detail
         self.preferredFileName = preferredFileName
+        self.fixedVersionLabel = fixedVersionLabel
     }
 
     public static func custom(file: URL, port: Int = 9021) -> PayloadDefinition {
@@ -30,7 +40,8 @@ public struct PayloadDefinition: Identifiable, Hashable, Sendable {
             port: port,
             source: .directFile(file),
             detail: "Port \(port)",
-            preferredFileName: file.lastPathComponent
+            preferredFileName: file.lastPathComponent,
+            fixedVersionLabel: "Local"
         )
     }
 }
@@ -76,7 +87,8 @@ public enum PayloadCatalog {
             name: "etaHEN 2.6B",
             port: 9021,
             source: .directFile(URL(string: "https://raw.githubusercontent.com/zecoxao/zecoxao.github.io/main/luasauce/payloads/etaHEN-2.6B.bin")!),
-            detail: "Port 9021"
+            detail: "Port 9021",
+            fixedVersionLabel: "2.6B"
         )
     ]
 }
