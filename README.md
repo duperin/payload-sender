@@ -102,7 +102,6 @@ Then open the app again.
 - The app stores no bundled payload binaries in the repository.
 - Downloaded payloads are cached locally in the user's Application Support folder.
 - The destination IP and custom port may be saved locally by macOS user defaults.
-- Only publish this project with files that are meant to be public. Build outputs, local Codex metadata, and machine-specific files are ignored by `.gitignore`.
 
 ## Responsibility
 
