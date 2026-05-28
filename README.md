@@ -6,6 +6,8 @@ The app downloads supported payloads on demand from their upstream release sourc
 
 ![Payload Sender screenshot](docs/assets/payload-sender.png)
 
+If you are using Windows, Linux, or Android, I recommend checking out [ItsBlurf/Blurfer](https://github.com/ItsBlurf/Blurfer).
+
 ## Features
 
 - Native macOS interface built with SwiftUI.
