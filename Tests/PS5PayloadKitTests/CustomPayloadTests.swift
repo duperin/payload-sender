@@ -28,4 +28,12 @@ final class CustomPayloadTests: XCTestCase {
         XCTAssertEqual(PortValidator.clamped(9021), 9021)
         XCTAssertEqual(PortValidator.clamped(70000), 65535)
     }
+
+    func testIPv4ValidatorAcceptsOnlyIPv4Addresses() {
+        XCTAssertTrue(IPv4AddressValidator.isValid("192.168.1.45"))
+        XCTAssertTrue(IPv4AddressValidator.isValid("127.0.0.1"))
+        XCTAssertFalse(IPv4AddressValidator.isValid(""))
+        XCTAssertFalse(IPv4AddressValidator.isValid("console.local"))
+        XCTAssertFalse(IPv4AddressValidator.isValid("999.168.1.45"))
+    }
 }

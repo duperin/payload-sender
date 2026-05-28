@@ -84,7 +84,7 @@ public enum PayloadCatalog {
         ),
         PayloadDefinition(
             id: "etahen-26b",
-            name: "etaHEN 2.6B",
+            name: "etaHEN",
             port: 9021,
             source: .directFile(URL(string: "https://raw.githubusercontent.com/zecoxao/zecoxao.github.io/main/luasauce/payloads/etaHEN-2.6B.bin")!),
             detail: "Port 9021",

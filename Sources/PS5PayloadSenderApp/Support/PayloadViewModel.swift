@@ -30,6 +30,8 @@ final class PayloadViewModel: ObservableObject {
         PayloadEvent(kind: .info, message: "Enter the console IP address and choose a payload.")
     ]
     @Published private(set) var activePayloadID: String?
+    @Published private(set) var isTestingConnection = false
+    @Published private(set) var isRefreshingVersions = false
     @Published private(set) var versionStates: [PayloadDefinition.ID: PayloadVersionState] = [:]
     @Published var customPortText: String {
         didSet {
@@ -50,9 +52,10 @@ final class PayloadViewModel: ObservableObject {
         self.customPortText = Self.normalizedPortText(savedCustomPort)
     }
 
-    func refreshPayloadVersions() async {
-        guard !didRefreshVersions else { return }
+    func refreshPayloadVersions(force: Bool = false) async {
+        guard force || !didRefreshVersions else { return }
         didRefreshVersions = true
+        isRefreshingVersions = true
 
         for payload in payloads {
             versionStates[payload.id] = .loading
@@ -71,14 +74,15 @@ final class PayloadViewModel: ObservableObject {
                 versionStates[payloadID] = state
             }
         }
+
+        isRefreshingVersions = false
+        if force {
+            append(.init(kind: .success, message: "Payload versions refreshed."))
+        }
     }
 
     func send(_ payload: PayloadDefinition) {
-        let trimmedIP = targetIP.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedIP.isEmpty else {
-            append(.init(kind: .failure, message: "Enter the console IP address before sending."))
-            return
-        }
+        guard let trimmedIP = validatedTargetIP() else { return }
 
         activePayloadID = payload.id
         append(.init(kind: .info, message: "Starting \(payload.name) transfer."))
@@ -96,11 +100,7 @@ final class PayloadViewModel: ObservableObject {
     }
 
     func chooseAndSendCustomPayload() {
-        let trimmedIP = targetIP.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedIP.isEmpty else {
-            append(.init(kind: .failure, message: "Enter the console IP address before sending."))
-            return
-        }
+        guard let trimmedIP = validatedTargetIP() else { return }
 
         let panel = NSOpenPanel()
         panel.title = "Choose Custom Payload"
@@ -118,6 +118,50 @@ final class PayloadViewModel: ObservableObject {
             return
         }
 
+        sendCustomPayload(file: file, to: trimmedIP, port: selectedPort)
+    }
+
+    func sendDroppedCustomPayload(file: URL) {
+        guard let trimmedIP = validatedTargetIP() else { return }
+        let selectedPort = Self.port(from: customPortText)
+        customPortText = "\(selectedPort)"
+        sendCustomPayload(file: file, to: trimmedIP, port: selectedPort)
+    }
+
+    func testConnection() {
+        guard let trimmedIP = validatedTargetIP() else { return }
+        guard !isTestingConnection else { return }
+
+        let ports = Array(Set(payloads.map(\.port) + [Self.port(from: customPortText)])).sorted()
+        isTestingConnection = true
+        append(.init(kind: .info, message: "Testing connection to \(trimmedIP)."))
+
+        Task {
+            let sender = TCPPayloadSender()
+            var results: [String] = []
+
+            for port in ports {
+                do {
+                    try sender.testConnection(to: trimmedIP, port: port, timeout: 2)
+                    results.append("\(port): open")
+                } catch {
+                    results.append("\(port): closed")
+                }
+            }
+
+            await MainActor.run {
+                append(.init(kind: .info, message: "Connection test: \(results.joined(separator: ", "))."))
+                isTestingConnection = false
+            }
+        }
+    }
+
+    func clearLog() {
+        events.removeAll()
+        append(.init(kind: .info, message: "Log cleared."))
+    }
+
+    private func sendCustomPayload(file: URL, to trimmedIP: String, port selectedPort: Int) {
         activePayloadID = "custom-payload"
         append(.init(kind: .info, message: "Starting custom payload transfer: \(file.lastPathComponent)."))
 
@@ -133,16 +177,26 @@ final class PayloadViewModel: ObservableObject {
         }
     }
 
-    func clearLog() {
-        events.removeAll()
-        append(.init(kind: .info, message: "Log cleared."))
-    }
-
     private func append(_ event: PayloadEvent) {
         events.append(event)
         if events.count > 80 {
             events.removeFirst(events.count - 80)
         }
+    }
+
+    private func validatedTargetIP() -> String? {
+        let trimmedIP = targetIP.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedIP.isEmpty else {
+            append(.init(kind: .failure, message: "Enter the console IP address before continuing."))
+            return nil
+        }
+
+        guard IPv4AddressValidator.isValid(trimmedIP) else {
+            append(.init(kind: .failure, message: "Enter a valid IPv4 address."))
+            return nil
+        }
+
+        return trimmedIP
     }
 
     static func normalizedPortText(_ text: String) -> String {

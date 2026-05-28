@@ -19,14 +19,23 @@ struct ContentView: View {
 
             VStack(alignment: .leading, spacing: 18) {
                 header
-                NetworkTargetView(targetIP: $viewModel.targetIP)
+                NetworkTargetView(
+                    targetIP: $viewModel.targetIP,
+                    isTesting: viewModel.isTestingConnection,
+                    testAction: viewModel.testConnection
+                )
                 PayloadButtonGrid(
                     payloads: viewModel.payloads,
                     activePayloadID: viewModel.activePayloadID,
+                    isRefreshingVersions: viewModel.isRefreshingVersions,
                     versionStates: viewModel.versionStates,
                     customPortText: $viewModel.customPortText,
+                    refreshVersionsAction: {
+                        Task { await viewModel.refreshPayloadVersions(force: true) }
+                    },
                     action: viewModel.send,
-                    customAction: viewModel.chooseAndSendCustomPayload
+                    customAction: viewModel.chooseAndSendCustomPayload,
+                    customDropAction: viewModel.sendDroppedCustomPayload
                 )
                 StatusLogView(events: viewModel.events, clearAction: viewModel.clearLog)
             }

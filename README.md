@@ -16,6 +16,9 @@ If you are using Windows, Linux, or Android, I recommend checking out [ItsBlurf/
 - Automatic latest-release lookup for GitHub and Forgejo/Gitea-style repositories.
 - Direct-file payload support.
 - Custom payload picker with configurable TCP port.
+- Drag-and-drop support for custom payload files.
+- Payload version chips that refresh when the app opens, with a manual refresh option.
+- Connection test for configured payload ports.
 - Local status log for download, extraction, connection, success, and failure messages.
 - No payload binaries are bundled in this repository.
 
@@ -27,10 +30,10 @@ If you are using Windows, Linux, or Android, I recommend checking out [ItsBlurf/
 | kstuff-lite | `EchoStretch/kstuff-lite` latest GitHub release | `9021` |
 | ShadowMountPlus | `drakmor/ShadowMountPlus` latest GitHub release | `9021` |
 | Elf Arsenal | `https://git.etawen.dev/soniciso/elf-arsenal` latest release, preferring `elf-arsenal.elf` | `9021` |
-| etaHEN 2.6B | `zecoxao/zecoxao.github.io` repository file: `luasauce/payloads/etaHEN-2.6B.bin` | `9021` |
+| etaHEN | `zecoxao/zecoxao.github.io` repository file: `luasauce/payloads/etaHEN-2.6B.bin` | `9021` |
 | Custom payload | User-selected local file | User-configurable, default `9021` |
 
-`etaHEN 2.6B` is downloaded from GitHub's raw file endpoint for the upstream repository path above. It is intentionally pinned to that specific `etaHEN-2.6B.bin` file instead of selecting the latest GitHub release.
+`etaHEN` is downloaded from GitHub's raw file endpoint for the upstream repository path above. It is intentionally pinned to that specific `etaHEN-2.6B.bin` file instead of selecting the latest GitHub release.
 
 ## Requirements
 

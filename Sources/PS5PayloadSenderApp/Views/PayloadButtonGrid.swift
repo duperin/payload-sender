@@ -1,13 +1,17 @@
 import PS5PayloadKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PayloadButtonGrid: View {
     let payloads: [PayloadDefinition]
     let activePayloadID: String?
+    let isRefreshingVersions: Bool
     let versionStates: [PayloadDefinition.ID: PayloadVersionState]
     @Binding var customPortText: String
+    let refreshVersionsAction: () -> Void
     let action: (PayloadDefinition) -> Void
     let customAction: () -> Void
+    let customDropAction: (URL) -> Void
 
     private let columns = [
         GridItem(.adaptive(minimum: 210), spacing: 12)
@@ -15,8 +19,22 @@ struct PayloadButtonGrid: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Payloads", systemImage: "shippingbox.fill")
-                .font(.headline)
+            HStack {
+                Label("Payloads", systemImage: "shippingbox.fill")
+                    .font(.headline)
+                Spacer()
+                Button(action: refreshVersionsAction) {
+                    if isRefreshingVersions {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                .buttonStyle(.borderless)
+                .disabled(isRefreshingVersions)
+                .help("Refresh payload versions")
+            }
 
             LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
                 ForEach(payloads) { payload in
@@ -113,6 +131,10 @@ struct PayloadButtonGrid: View {
                         .strokeBorder(activePayloadID == "custom-payload" ? Color.accentColor.opacity(0.6) : Color.white.opacity(0.08))
                 }
                 .disabled(activePayloadID != nil)
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    handleCustomPayloadDrop(providers)
+                }
+                .help("Drop a custom payload file here or choose one with the send button")
             }
         }
     }
@@ -123,6 +145,31 @@ struct PayloadButtonGrid: View {
             return "9021"
         }
         return "\(PortValidator.clamped(port))"
+    }
+
+    private func handleCustomPayloadDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard activePayloadID == nil,
+              let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) }) else {
+            return false
+        }
+
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+            let url: URL?
+            if let data = item as? Data {
+                url = URL(dataRepresentation: data, relativeTo: nil)
+            } else if let itemURL = item as? URL {
+                url = itemURL
+            } else {
+                url = nil
+            }
+
+            guard let url else { return }
+            Task { @MainActor in
+                customDropAction(url)
+            }
+        }
+
+        return true
     }
 
     @ViewBuilder
